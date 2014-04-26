@@ -36,14 +36,18 @@ def remote_connection_string(writer):
 
 @asyncio.coroutine
 def proxy_data_task(reader, writer, connection_string):
-  while True:
-    buffer = yield from reader.read(BUFFER_SIZE)
-    if not buffer:
-      writer.close()
-      logger.info('close connection {}'.format(connection_string))
-      return
-    writer.write(buffer)
-    yield from writer.drain()
+  try:
+    while True:
+      buffer = yield from reader.read(BUFFER_SIZE)
+      if not buffer:
+        break
+      writer.write(buffer)
+      yield from writer.drain()
+  except Exception as e:
+    logger.info('proxy_data_task exception {}'.format(e))
+  finally:
+    writer.close()
+    logger.info('close connection {}'.format(connection_string))
 
 @asyncio.coroutine
 def accept_client_task(client_reader, client_writer, remote_address, remote_port):
@@ -51,7 +55,7 @@ def accept_client_task(client_reader, client_writer, remote_address, remote_port
   logger.info('accept connection {}'.format(client_string))
   try:
     (remote_reader, remote_writer) = yield from asyncio.open_connection(host = remote_address, port = remote_port)
-  except OSError as e:
+  except Exception as e:
     logger.info('error connecting to remote server {}'.format(e))
     logger.info('close connection {}'.format(client_string))
     client_writer.close()
@@ -62,7 +66,7 @@ def accept_client_task(client_reader, client_writer, remote_address, remote_port
     asyncio.async(proxy_data_task(remote_reader, client_writer, client_string))
 
 def parse_addr_port_string(addr_port_string):
-  addr_port_list = addr_port_string.split(':', 1)
+  addr_port_list = addr_port_string.rsplit(':', 1)
   return (addr_port_list[0], int(addr_port_list[1]))
 
 def print_usage():
@@ -78,7 +82,6 @@ def main():
   local_address_port_list = map(parse_addr_port_string, sys.argv[1:-1])
   (remote_address, remote_port) = parse_addr_port_string(sys.argv[-1])
 
-  loop = asyncio.get_event_loop()
   for (local_address, local_port) in local_address_port_list:
     asyncio.async(
       asyncio.start_server(
@@ -87,6 +90,7 @@ def main():
         host = local_address, port = local_port))
     logger.info('listening on {}:{}'.format(local_address, local_port))
   try:
+    loop = asyncio.get_event_loop()
     loop.run_forever()
   except KeyboardInterrupt:
     pass
