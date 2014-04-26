@@ -62,7 +62,7 @@ def accept_client_task(client_reader, client_writer, remote_address, remote_port
     logger.info('close connection {}'.format(client_string))
     client_writer.close()
   except Exception as e:
-    logger.info('error connecting to remote server {}'.format(e))
+    logger.info('error connecting to remote server: {}'.format(e))
     logger.info('close connection {}'.format(client_string))
     client_writer.close()
   else:
