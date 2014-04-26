@@ -5,7 +5,7 @@ import functools
 import logging
 import sys
 
-BUFFER_SIZE=1024
+BUFFER_SIZE = 65536
 
 def createLogger():
   logger = logging.getLogger('proxy')
