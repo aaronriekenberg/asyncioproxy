@@ -31,8 +31,8 @@ def client_connection_string(writer):
 
 def remote_connection_string(writer):
   return '{} -> {}'.format(
-    writer.get_extra_info('peername'),
-    writer.get_extra_info('sockname'))
+    writer.get_extra_info('sockname'),
+    writer.get_extra_info('peername'))
 
 @asyncio.coroutine
 def proxy_data_task(reader, writer, connection_string):
