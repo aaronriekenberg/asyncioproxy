@@ -15,7 +15,7 @@ def createLogger():
   consoleHandler.setLevel(logging.DEBUG)
 
   formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    '%(asctime)s - %(threadName)s - %(message)s')
   consoleHandler.setFormatter(formatter)
 
   logger.addHandler(consoleHandler)
