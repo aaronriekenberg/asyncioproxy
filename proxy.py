@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import asyncio
-import concurrent.futures
 import functools
 import logging
 import sys
@@ -58,7 +57,7 @@ def accept_client_task(client_reader, client_writer, remote_address, remote_port
     (remote_reader, remote_writer) = yield from asyncio.wait_for(
       asyncio.open_connection(host = remote_address, port = remote_port),
       timeout = 1)
-  except concurrent.futures.TimeoutError:
+  except asyncio.TimeoutError:
     logger.info('connect timeout')
     logger.info('close connection {}'.format(client_string))
     client_writer.close()
