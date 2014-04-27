@@ -88,15 +88,21 @@ def main():
   local_address_port_list = map(parse_addr_port_string, sys.argv[1:-1])
   (remote_address, remote_port) = parse_addr_port_string(sys.argv[-1])
 
+  loop = asyncio.get_event_loop()
   for (local_address, local_port) in local_address_port_list:
-    asyncio.async(
-      asyncio.start_server(
-        functools.partial(
-          accept_client_task, remote_address = remote_address, remote_port = remote_port),
-        host = local_address, port = local_port))
-    logger.info('listening on {}:{}'.format(local_address, local_port))
+    def handle_client(client_reader, client_writer):
+      asyncio.async(
+        accept_client_task(
+          client_reader = client_reader, client_writer = client_writer,
+          remote_address = remote_address, remote_port = remote_port))
+
+    host = None if local_address == '0' else local_address
+    server = loop.run_until_complete(
+      asyncio.start_server(handle_client, host = host, port = local_port))
+    for s in server.sockets:
+      logger.info('listening on {}'.format(s.getsockname()))
+
   try:
-    loop = asyncio.get_event_loop()
     loop.run_forever()
   except KeyboardInterrupt:
     pass
