@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import asyncio
-import functools
 import logging
 import sys
 
@@ -88,14 +87,14 @@ def main():
   local_address_port_list = map(parse_addr_port_string, sys.argv[1:-1])
   (remote_address, remote_port) = parse_addr_port_string(sys.argv[-1])
 
+  def handle_client(client_reader, client_writer):
+    asyncio.async(
+      accept_client_task(
+        client_reader = client_reader, client_writer = client_writer,
+        remote_address = remote_address, remote_port = remote_port))
+
   loop = asyncio.get_event_loop()
   for (local_address, local_port) in local_address_port_list:
-    def handle_client(client_reader, client_writer):
-      asyncio.async(
-        accept_client_task(
-          client_reader = client_reader, client_writer = client_writer,
-          remote_address = remote_address, remote_port = remote_port))
-
     host = None if local_address == '0' else local_address
     server = loop.run_until_complete(
       asyncio.start_server(handle_client, host = host, port = local_port))
