@@ -6,7 +6,7 @@ import sys
 
 BUFFER_SIZE = 65536
 
-def createLogger():
+def create_logger():
   logger = logging.getLogger('proxy')
   logger.setLevel(logging.INFO)
 
@@ -21,7 +21,7 @@ def createLogger():
 
   return logger
 
-logger = createLogger()
+logger = create_logger()
 
 def client_connection_string(writer):
   return '{} -> {}'.format(
