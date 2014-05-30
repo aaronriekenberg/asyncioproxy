@@ -74,18 +74,21 @@ def parse_addr_port_string(addr_port_string):
   addr_port_list = addr_port_string.rsplit(':', 1)
   return (addr_port_list[0], int(addr_port_list[1]))
 
-def print_usage():
+def print_usage_and_exit():
   logger.error(
     'Usage: {} <listen addr> [<listen addr> ...] <remote addr>'.format(
       sys.argv[0]))
+  sys.exit(1)
 
 def main():
   if (len(sys.argv) < 3):
-    print_usage()
-    sys.exit(1)
+    print_usage_and_exit()
 
-  local_address_port_list = map(parse_addr_port_string, sys.argv[1:-1])
-  (remote_address, remote_port) = parse_addr_port_string(sys.argv[-1])
+  try:
+    local_address_port_list = map(parse_addr_port_string, sys.argv[1:-1])
+    (remote_address, remote_port) = parse_addr_port_string(sys.argv[-1])
+  except:
+    print_usage_and_exit()
 
   def handle_client(client_reader, client_writer):
     asyncio.async(
@@ -96,8 +99,14 @@ def main():
   loop = asyncio.get_event_loop()
   for (local_address, local_port) in local_address_port_list:
     host = None if local_address == '0' else local_address
-    server = loop.run_until_complete(
-      asyncio.start_server(handle_client, host = host, port = local_port))
+
+    try:
+      server = loop.run_until_complete(
+        asyncio.start_server(handle_client, host = host, port = local_port))
+    except Exception as e:
+      logger.error('Bind error: {}'.format(e))
+      sys.exit(1)
+
     for s in server.sockets:
       logger.info('listening on {}'.format(s.getsockname()))
 
