@@ -91,7 +91,7 @@ def main():
     print_usage_and_exit()
 
   @asyncio.coroutine
-  def handle_client(client_reader, client_writer):
+  def handle_client_task(client_reader, client_writer):
     yield from accept_client_task(
       client_reader = client_reader, client_writer = client_writer,
       remote_address = remote_address, remote_port = remote_port)
@@ -100,7 +100,8 @@ def main():
   for (local_address, local_port) in local_address_port_list:
     try:
       server = loop.run_until_complete(
-        asyncio.start_server(handle_client, host = local_address, port = local_port))
+        asyncio.start_server(
+          handle_client_task, host = local_address, port = local_port))
     except Exception as e:
       logger.error('Bind error: {}'.format(e))
       sys.exit(1)
