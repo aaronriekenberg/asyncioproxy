@@ -66,7 +66,7 @@ def accept_client_task(client_reader, client_writer, remote_address, remote_port
     client_writer.close()
   else:
     remote_string = remote_connection_string(remote_writer)
-    logger.info('connect to remote {}'.format(remote_string))
+    logger.info('connected to remote {}'.format(remote_string))
     asyncio.async(proxy_data_task(client_reader, remote_writer, remote_string))
     asyncio.async(proxy_data_task(remote_reader, client_writer, client_string))
 
