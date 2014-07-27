@@ -98,11 +98,9 @@ def main():
 
   loop = asyncio.get_event_loop()
   for (local_address, local_port) in local_address_port_list:
-    host = None if local_address == '0' else local_address
-
     try:
       server = loop.run_until_complete(
-        asyncio.start_server(handle_client, host = host, port = local_port))
+        asyncio.start_server(handle_client, host = local_address, port = local_port))
     except Exception as e:
       logger.error('Bind error: {}'.format(e))
       sys.exit(1)
