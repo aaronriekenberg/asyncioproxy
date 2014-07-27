@@ -90,11 +90,11 @@ def main():
   except:
     print_usage_and_exit()
 
+  @asyncio.coroutine
   def handle_client(client_reader, client_writer):
-    asyncio.async(
-      accept_client_task(
-        client_reader = client_reader, client_writer = client_writer,
-        remote_address = remote_address, remote_port = remote_port))
+    yield from accept_client_task(
+      client_reader = client_reader, client_writer = client_writer,
+      remote_address = remote_address, remote_port = remote_port)
 
   loop = asyncio.get_event_loop()
   for (local_address, local_port) in local_address_port_list:
