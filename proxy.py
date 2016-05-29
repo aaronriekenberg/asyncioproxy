@@ -33,27 +33,25 @@ def remote_connection_string(writer):
     writer.get_extra_info('sockname'),
     writer.get_extra_info('peername'))
 
-@asyncio.coroutine
-def proxy_data_task(reader, writer, connection_string):
+async def proxy_data_task(reader, writer, connection_string):
   try:
     while True:
-      buffer = yield from reader.read(BUFFER_SIZE)
+      buffer = await reader.read(BUFFER_SIZE)
       if not buffer:
         break
       writer.write(buffer)
-      yield from writer.drain()
+      await writer.drain()
   except Exception as e:
     logger.info('proxy_data_task exception {}'.format(e))
   finally:
     writer.close()
     logger.info('close connection {}'.format(connection_string))
 
-@asyncio.coroutine
-def accept_client_task(client_reader, client_writer, remote_address, remote_port):
+async def accept_client_task(client_reader, client_writer, remote_address, remote_port):
   client_string = client_connection_string(client_writer)
   logger.info('accept connection {}'.format(client_string))
   try:
-    (remote_reader, remote_writer) = yield from asyncio.wait_for(
+    (remote_reader, remote_writer) = await asyncio.wait_for(
       asyncio.open_connection(host = remote_address, port = remote_port),
       timeout = 1)
   except asyncio.TimeoutError:
@@ -67,8 +65,8 @@ def accept_client_task(client_reader, client_writer, remote_address, remote_port
   else:
     remote_string = remote_connection_string(remote_writer)
     logger.info('connected to remote {}'.format(remote_string))
-    asyncio.async(proxy_data_task(client_reader, remote_writer, remote_string))
-    asyncio.async(proxy_data_task(remote_reader, client_writer, client_string))
+    asyncio.ensure_future(proxy_data_task(client_reader, remote_writer, remote_string))
+    asyncio.ensure_future(proxy_data_task(remote_reader, client_writer, client_string))
 
 def parse_addr_port_string(addr_port_string):
   addr_port_list = addr_port_string.rsplit(':', 1)
@@ -91,7 +89,7 @@ def main():
     print_usage_and_exit()
 
   def handle_client_task(client_reader, client_writer):
-    asyncio.async(accept_client_task(
+    asyncio.ensure_future(accept_client_task(
       client_reader = client_reader, client_writer = client_writer,
       remote_address = remote_address, remote_port = remote_port))
 
