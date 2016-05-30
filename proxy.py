@@ -36,10 +36,10 @@ def remote_connection_string(writer):
 async def proxy_data(reader, writer, connection_string):
   try:
     while True:
-      buffer = await reader.read(BUFFER_SIZE)
-      if not buffer:
+      data = await reader.read(BUFFER_SIZE)
+      if not data:
         break
-      writer.write(buffer)
+      writer.write(data)
       await writer.drain()
   except Exception as e:
     logger.info('proxy_data_task exception {}'.format(e))
