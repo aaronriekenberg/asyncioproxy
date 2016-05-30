@@ -33,7 +33,7 @@ def remote_connection_string(writer):
     writer.get_extra_info('sockname'),
     writer.get_extra_info('peername'))
 
-async def proxy_data_task(reader, writer, connection_string):
+async def proxy_data(reader, writer, connection_string):
   try:
     while True:
       buffer = await reader.read(BUFFER_SIZE)
@@ -47,7 +47,7 @@ async def proxy_data_task(reader, writer, connection_string):
     writer.close()
     logger.info('close connection {}'.format(connection_string))
 
-async def accept_client_task(client_reader, client_writer, remote_address, remote_port):
+async def accept_client(client_reader, client_writer, remote_address, remote_port):
   client_string = client_connection_string(client_writer)
   logger.info('accept connection {}'.format(client_string))
   try:
@@ -65,8 +65,8 @@ async def accept_client_task(client_reader, client_writer, remote_address, remot
   else:
     remote_string = remote_connection_string(remote_writer)
     logger.info('connected to remote {}'.format(remote_string))
-    asyncio.ensure_future(proxy_data_task(client_reader, remote_writer, remote_string))
-    asyncio.ensure_future(proxy_data_task(remote_reader, client_writer, client_string))
+    asyncio.ensure_future(proxy_data(client_reader, remote_writer, remote_string))
+    asyncio.ensure_future(proxy_data(remote_reader, client_writer, client_string))
 
 def parse_addr_port_string(addr_port_string):
   addr_port_list = addr_port_string.rsplit(':', 1)
@@ -88,8 +88,8 @@ def main():
   except:
     print_usage_and_exit()
 
-  def handle_client_task(client_reader, client_writer):
-    asyncio.ensure_future(accept_client_task(
+  def handle_client(client_reader, client_writer):
+    asyncio.ensure_future(accept_client(
       client_reader = client_reader, client_writer = client_writer,
       remote_address = remote_address, remote_port = remote_port))
 
@@ -98,7 +98,7 @@ def main():
     try:
       server = loop.run_until_complete(
         asyncio.start_server(
-          handle_client_task, host = local_address, port = local_port))
+          handle_client, host = local_address, port = local_port))
     except Exception as e:
       logger.error('Bind error: {}'.format(e))
       sys.exit(1)
