@@ -5,6 +5,7 @@ import logging
 import sys
 
 BUFFER_SIZE = 65536
+CONNECT_TIMEOUT_SECONDS = 5
 
 def create_logger():
   logger = logging.getLogger('proxy')
@@ -53,7 +54,7 @@ async def accept_client(client_reader, client_writer, remote_address, remote_por
   try:
     (remote_reader, remote_writer) = await asyncio.wait_for(
       asyncio.open_connection(host = remote_address, port = remote_port),
-      timeout = 1)
+      timeout = CONNECT_TIMEOUT_SECONDS)
   except asyncio.TimeoutError:
     logger.info('connect timeout')
     logger.info('close connection {}'.format(client_string))
